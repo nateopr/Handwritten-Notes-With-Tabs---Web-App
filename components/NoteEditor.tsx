@@ -1,5 +1,5 @@
 // Fix: Create `NoteEditor.tsx` component.
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { type NoteFile, type Tab, type Stroke, Tool } from '../types';
 import Canvas from './Canvas';
 import { PlusIcon, ArrowUturnLeftIcon, ArrowLeftIcon } from './Icons';
@@ -16,11 +16,23 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTabName, setEditingTabName] = useState('');
   const tabNameInputRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const lastScrollTopRef = useRef(0);
+  const [isToolPaletteVisible, setIsToolPaletteVisible] = useState(true);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   // Tool State
   const [currentTool, setCurrentTool] = useState<Tool>(Tool.Pen);
   const [currentColor, setCurrentColor] = useState<string>('#FFFFFF');
   const [currentWidth, setCurrentWidth] = useState<number>(3);
+
+  useEffect(() => {
+    if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+    }
+  }, []);
 
   const activeTab = useMemo(() => {
     return note.tabs.find(t => t.id === note.activeTabId) || note.tabs[0];
@@ -99,9 +111,43 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
     setEditingTabId(null);
   };
 
+  const handleScroll = useCallback(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+    const { scrollTop, scrollHeight, clientHeight } = mainEl;
+    
+    // Infinite scroll logic
+    const INFINITE_SCROLL_THRESHOLD = 500;
+    if (scrollHeight - scrollTop - clientHeight < INFINITE_SCROLL_THRESHOLD) {
+      const newHeight = activeTab.height + 1000;
+      const updatedTabs = note.tabs.map(tab =>
+        tab.id === activeTab.id ? { ...tab, height: newHeight } : tab
+      );
+      onUpdate({ ...note, tabs: updatedTabs, updatedAt: new Date().toISOString() });
+    }
+
+    // UI visibility logic
+    const HIDE_THRESHOLD = 20; // px
+    if (scrollTop > lastScrollTopRef.current && scrollTop > HIDE_THRESHOLD) {
+      // Scrolling down
+      setIsToolPaletteVisible(false);
+      setIsHeaderVisible(false);
+    } else {
+      // Scrolling up or at the very top
+      setIsToolPaletteVisible(true);
+      setIsHeaderVisible(true);
+    }
+    lastScrollTopRef.current = scrollTop <= 0 ? 0 : scrollTop;
+  }, [activeTab, note, onUpdate]);
+
   return (
-    <div className="flex flex-col h-screen bg-gray-900">
-      <header className="flex-shrink-0 bg-gray-800 text-white shadow-md z-10">
+    <div className="flex flex-col h-screen bg-gray-900 relative overflow-hidden">
+      <header
+        ref={headerRef}
+        className={`absolute top-0 left-0 right-0 bg-gray-800 text-white shadow-md z-10 transition-transform duration-300 ease-in-out ${
+            isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -160,7 +206,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto relative">
+      <main 
+        ref={mainRef} 
+        onScroll={handleScroll} 
+        className="flex-grow overflow-y-auto relative"
+        style={{ paddingTop: `${headerHeight}px` }}
+      >
         {activeTab && (
           <Canvas
             key={activeTab.id}
@@ -179,6 +230,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
           setColor={setCurrentColor}
           width={currentWidth}
           setWidth={setCurrentWidth}
+          isVisible={isToolPaletteVisible}
         />
       </main>
     </div>

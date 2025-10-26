@@ -37,6 +37,12 @@ export const ArrowLeftIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =>
     </svg>
 );
 
+export const EaselIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21 12 3l3.75 18M3.75 18h16.5" />
+    </svg>
+);
+
 export const PaintBrushIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.998 15.998 0 011.622-3.385m5.043.025a15.998 15.998 0 001.622-3.385m3.388 1.62a15.998 15.998 0 00-1.62-3.385m-1.622 3.385a15.998 15.998 0 01-3.388 1.621m-5.043-.025a15.998 15.998 0 00-1.622 3.385m5.043-.025a15.998 15.998 0 00-3.388-1.622m5.043 3.385a15.998 15.998 0 01-1.622 3.385m1.622-3.385a15.998 15.998 0 003.388 1.622m-5.043 3.385a15.998 15.998 0 013.388-1.622m5.043 3.385a15.998 15.998 0 00-3.388-1.621m-1.622 3.385a15.998 15.998 0 01-5.043-.025" />
@@ -51,6 +57,6 @@ export const PenIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const LassoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 16.811V8.289a2.25 2.25 0 00-1.897-2.23l-8.421-2.105a2.25 2.25 0 00-2.366 2.23v8.522l-1.61 1.288a.75.75 0 00-.594 1.243l.865 3.46a.75.75 0 001.243.594l1.288-1.61A2.25 2.25 0 008.25 21h8.522a2.25 2.25 0 002.23-1.897l2.105-8.421a2.25 2.25 0 00-2.23-2.366z" />
+        <ellipse cx="12" cy="12" rx="9" ry="6" strokeDasharray="4 2" />
     </svg>
 );
