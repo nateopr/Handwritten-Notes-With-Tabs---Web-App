@@ -7,6 +7,8 @@
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#111827" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Babel Standalone for in-browser JSX/TSX transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
       /* For a more native app-like feel, disable text selection on the canvas */
       .canvas-container {
@@ -28,7 +30,8 @@
 </head>
   <body class="bg-gray-900 text-white antialiased">
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <!-- Use Babel to transpile the TSX module. data-presets tells Babel how to transform the code. -->
+    <script type="text/babel" data-presets="typescript,react" data-type="module" src="./index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
