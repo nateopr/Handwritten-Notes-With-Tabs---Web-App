@@ -60,3 +60,10 @@ export const LassoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         <ellipse cx="12" cy="12" rx="9" ry="6" strokeDasharray="4 2" />
     </svg>
 );
+
+export const HandPanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 11.25a1.125 1.125 0 01-1.125-1.125V6.75a1.125 1.125 0 012.25 0v3.375c0 .621-.504 1.125-1.125 1.125zM12.75 11.25a1.125 1.125 0 01-1.125-1.125V4.5a1.125 1.125 0 012.25 0v5.625c0 .621-.504 1.125-1.125 1.125zM16.5 11.25a1.125 1.125 0 01-1.125-1.125V6.75a1.125 1.125 0 012.25 0v3.375c0 .621-.504 1.125-1.125 1.125zM20.25 15.375a1.125 1.125 0 01-1.125-1.125V9.375a1.125 1.125 0 012.25 0v4.875c0 .621-.504 1.125-1.125 1.125zM5.25 12.375a1.125 1.125 0 01-1.125-1.125V9.375a1.125 1.125 0 012.25 0v1.875c0 .621-.504 1.125-1.125 1.125z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 14.25h16.5a1.5 1.5 0 011.5 1.5v2.25a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V15.75a1.5 1.5 0 011.5-1.5z" />
+    </svg>
+  );

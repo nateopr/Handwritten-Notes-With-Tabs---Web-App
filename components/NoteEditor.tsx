@@ -27,6 +27,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
   const [currentTool, setCurrentTool] = useState<Tool>(Tool.Pen);
   const [currentColor, setCurrentColor] = useState<string>('#FFFFFF');
   const [currentWidth, setCurrentWidth] = useState<number>(3);
+  const [isFingerDrawingEnabled, setIsFingerDrawingEnabled] = useState(false);
 
   useEffect(() => {
     if (headerRef.current) {
@@ -140,6 +141,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
     lastScrollTopRef.current = scrollTop <= 0 ? 0 : scrollTop;
   }, [activeTab, note, onUpdate]);
 
+  const handlePan = useCallback((dy: number) => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop += dy;
+    }
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 relative overflow-hidden">
       <header
@@ -221,6 +228,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
             tool={currentTool}
             color={currentColor}
             width={currentWidth}
+            isFingerDrawingEnabled={isFingerDrawingEnabled}
+            onPan={handlePan}
           />
         )}
         <ToolPalette
@@ -231,6 +240,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onClose, onUpdate }) => {
           width={currentWidth}
           setWidth={setCurrentWidth}
           isVisible={isToolPaletteVisible}
+          isFingerDrawingEnabled={isFingerDrawingEnabled}
+          setIsFingerDrawingEnabled={setIsFingerDrawingEnabled}
         />
       </main>
     </div>

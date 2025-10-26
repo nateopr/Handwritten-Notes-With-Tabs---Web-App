@@ -9,6 +9,8 @@ interface CanvasProps {
   tool: Tool;
   color: string;
   width: number;
+  isFingerDrawingEnabled: boolean;
+  onPan: (dy: number) => void;
 }
 
 // Bounding box calculation
@@ -41,12 +43,24 @@ const isPointInPolygon = (point: Point, polygon: Point[]) => {
 };
 
 
-const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool, color, width }) => {
+const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool, color, width, isFingerDrawingEnabled, onPan }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [moveStartPoint, setMoveStartPoint] = useState<Point | null>(null);
+  const activePointersRef = useRef<Set<number>>(new Set());
+  
+  // Panning and Inertia state
+  const [isPanning, setIsPanning] = useState(false);
+  const lastPanY = useRef<number | null>(null);
+  const velocityRef = useRef(0);
+  const lastPanTimeRef = useRef(0);
+  const inertiaFrameIdRef = useRef<number | null>(null);
+  
+  const PANNING_FRICTION = 1.2;
+  const INERTIA_FRICTION = 0.95; // How quickly the inertia slows down
+  const MIN_VELOCITY_THRESHOLD = 0.1; // Below this, inertia stops
 
   const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D) => {
     const canvas = canvasRef.current!;
@@ -136,6 +150,25 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
     redrawCanvas(ctx);
   }, [strokes, currentPoints, redrawCanvas]);
 
+  const startInertiaScroll = useCallback(() => {
+    const scroll = () => {
+      // Pan based on current velocity (scaled by typical frame duration)
+      onPan(velocityRef.current * 16);
+      
+      // Apply friction
+      velocityRef.current *= INERTIA_FRICTION;
+
+      // Continue animation if velocity is still significant
+      if (Math.abs(velocityRef.current) > MIN_VELOCITY_THRESHOLD) {
+        inertiaFrameIdRef.current = requestAnimationFrame(scroll);
+      } else {
+        velocityRef.current = 0;
+        inertiaFrameIdRef.current = null;
+      }
+    };
+    // Start the animation loop
+    inertiaFrameIdRef.current = requestAnimationFrame(scroll);
+  }, [onPan]);
 
   const getPoint = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -147,9 +180,27 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.add(e.pointerId);
     e.currentTarget.setPointerCapture(e.pointerId);
-    const point = getPoint(e);
+
+    // If input is touch and finger drawing is off, start panning ONLY for the first finger
+    if (e.pointerType === 'touch' && !isFingerDrawingEnabled) {
+      if (activePointersRef.current.size === 1) {
+        // Stop any existing inertia animation
+        if (inertiaFrameIdRef.current) {
+          cancelAnimationFrame(inertiaFrameIdRef.current);
+          inertiaFrameIdRef.current = null;
+        }
+        setIsPanning(true);
+        lastPanY.current = e.clientY;
+        velocityRef.current = 0;
+        lastPanTimeRef.current = Date.now();
+      }
+      return;
+    }
     
+    const point = getPoint(e);
+    // Logic for drawing or moving selection
     if (tool === Tool.Lasso) {
         const selectedStrokes = strokes.filter(s => s.selected);
         const box = selectedStrokes.length > 0 ? getStrokesBoundingBox(selectedStrokes) : null;
@@ -165,7 +216,35 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Handle panning
+    if (isPanning && lastPanY.current !== null) {
+      // Reject multi-touch gestures for panning
+      if (activePointersRef.current.size > 1) {
+        setIsPanning(false);
+        lastPanY.current = null;
+        return;
+      }
+      const now = Date.now();
+      const timeDelta = now - lastPanTimeRef.current;
+      
+      const dy = lastPanY.current - e.clientY;
+      const panAmount = dy * PANNING_FRICTION;
+      onPan(panAmount);
+      
+      // Calculate velocity for inertia
+      if (timeDelta > 0) {
+          const currentVelocity = panAmount / timeDelta; // px per ms
+          // Smooth velocity with a weighted average
+          velocityRef.current = velocityRef.current * 0.8 + currentVelocity * 0.2;
+      }
+
+      lastPanY.current = e.clientY;
+      lastPanTimeRef.current = now;
+      return;
+    }
+    
     const point = getPoint(e);
+
     if (isDrawing) {
         setCurrentPoints(prev => [...prev, point]);
     } else if (isMoving && moveStartPoint) {
@@ -191,7 +270,19 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.delete(e.pointerId);
     e.currentTarget.releasePointerCapture(e.pointerId);
+
+    // When the last finger is lifted, stop panning and start inertia
+    if (isPanning && activePointersRef.current.size === 0) {
+        setIsPanning(false);
+        lastPanY.current = null;
+        
+        // Start inertia scroll if velocity is high enough
+        if (Math.abs(velocityRef.current) > MIN_VELOCITY_THRESHOLD) {
+            startInertiaScroll();
+        }
+    }
 
     if (isDrawing) {
         setIsDrawing(false);
@@ -224,6 +315,8 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
     setCurrentPoints([]);
   };
 
+  const cursorClass = isPanning ? 'cursor-grabbing' : 'cursor-crosshair';
+
   return (
     <canvas
       ref={canvasRef}
@@ -231,7 +324,7 @@ const Canvas: React.FC<CanvasProps> = ({ strokes, onStrokesChange, height, tool,
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`touch-none w-full bg-gray-800 ${tool === Tool.Lasso ? 'cursor-crosshair' : 'cursor-crosshair'}`}
+      className={`touch-none w-full bg-gray-800 ${cursorClass}`}
       style={{ height: `${height}px` }}
     />
   );

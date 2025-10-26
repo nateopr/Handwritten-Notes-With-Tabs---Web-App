@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tool } from '../types';
-import { EaselIcon, PenIcon, LassoIcon, XMarkIcon } from './Icons';
+import { EaselIcon, PenIcon, LassoIcon, XMarkIcon, HandPanIcon } from './Icons';
 
 interface ToolPaletteProps {
   tool: Tool;
@@ -10,12 +10,24 @@ interface ToolPaletteProps {
   width: number;
   setWidth: (width: number) => void;
   isVisible: boolean;
+  isFingerDrawingEnabled: boolean;
+  setIsFingerDrawingEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const COLORS = ['#FFFFFF', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#A855F7'];
 const WIDTHS = [2, 3, 5, 8, 12];
 
-const ToolPalette: React.FC<ToolPaletteProps> = ({ tool, setTool, color, setColor, width, setWidth, isVisible }) => {
+const ToolPalette: React.FC<ToolPaletteProps> = ({ 
+    tool, 
+    setTool, 
+    color, 
+    setColor, 
+    width, 
+    setWidth, 
+    isVisible, 
+    isFingerDrawingEnabled, 
+    setIsFingerDrawingEnabled 
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const handleToolChange = (newTool: Tool) => {
@@ -30,7 +42,7 @@ const ToolPalette: React.FC<ToolPaletteProps> = ({ tool, setTool, color, setColo
       <div className={`bg-gray-700 p-3 rounded-lg shadow-2xl flex flex-col gap-4 transition-all duration-300 ease-in-out ${
           isOpen && tool === Tool.Pen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
       }`}
-      style={{ transitionDelay: '150ms' }}
+      style={{ transitionDelay: '200ms' }}
       >
           {/* Colors */}
           <div className="flex gap-2 justify-center">
@@ -81,6 +93,16 @@ const ToolPalette: React.FC<ToolPaletteProps> = ({ tool, setTool, color, setColo
               style={{ transitionDelay: '100ms' }}
             >
               <LassoIcon className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setIsFingerDrawingEnabled(prev => !prev)}
+              title={isFingerDrawingEnabled ? "Disable Finger Drawing" : "Enable Finger Drawing"}
+              className={`p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform ${
+                isFingerDrawingEnabled ? 'bg-indigo-600 text-white' : 'bg-gray-600 text-gray-200 hover:bg-indigo-500'
+              } ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+              style={{ transitionDelay: '150ms' }}
+            >
+              <HandPanIcon className="w-6 h-6" />
             </button>
           </>
         )}
