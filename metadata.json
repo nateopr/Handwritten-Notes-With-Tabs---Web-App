@@ -1,0 +1,5 @@
+{
+  "name": "Vector Note-Taking Web App",
+  "description": "A web-based note-taking application that mimics a native tablet experience with a focus on vector-based handwriting, tabbed organization within notes, and offline storage. Built with React and TypeScript.",
+  "requestFramePermissions": []
+}
