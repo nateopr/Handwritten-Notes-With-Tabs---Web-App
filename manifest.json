@@ -1,0 +1,21 @@
+{
+  "short_name": "Vector Notes",
+  "name": "Vector Note-Taking Web App",
+  "description": "A web-based note-taking application that mimics a native tablet experience with a focus on vector-based handwriting, tabbed organization within notes, and offline storage.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#111827",
+  "background_color": "#111827"
+}
